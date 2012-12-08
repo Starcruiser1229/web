@@ -10,7 +10,7 @@ var connInfo =
 };
     
 var conn;
-var games; //this is the main array which will hold the game objects for all currently running games...
+var games = []; //this is the main array which will hold the game objects for all currently running games...
 
 exports.connectToDatabase = function() 
 {
@@ -32,7 +32,7 @@ exports.connectToDatabase = function()
 exports.renderHome = function(req, res) 
 {
     conn.query("SELECT id, name FROM games", function(err, result){
-        rs.render("index.ejs", {title:"2D Games", data:result, err:err} );
+        res.render("index.ejs", {title:"2D Games", data:result, err:err} );
         });
 };
 
@@ -43,12 +43,24 @@ exports.renderEditor = function(req, res)
 
 exports.renderGame = function(req, res) 
 {
-    res.render("game.ejs", {title:"Chat 326", id:6} );
+    console.log(req.params.id);
+    res.render("game.ejs", {title:"Chat 326", id:req.params.id} );
 };
 
-exports.gameStart = function(req, res)
+exports.startGame = function(req, res)
 {
-    
+    var done = false;
+    while (!done)
+    {
+        var code = Math.random().toString(36).substring(2,7);
+        console.log(code);
+        if (!games[code])
+        {
+            games[code] = true; //this is where we create the game object!!!!!!
+            done = true;
+        }
+    }
+    res.redirect("/play/"+code);   
 }
 
 exports.newSocket = function() {}; //fix this later

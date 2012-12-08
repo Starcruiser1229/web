@@ -25,8 +25,9 @@ var express = require('express'),
   });
   
   app.get('/', routes.renderHome);
-  app.get('/Play/*', routes.renderGame);
-  app.get('/Edit/', routes.renderEditor);
+  app.get('/play/:id', routes.renderGame);
+  app.get('/edit/:id', routes.renderEditor);
+  app.get('/start/:id', routes.startGame);
   
   var server = http.createServer(app);
   io = socketIO.listen(server); //this is global so the routes can use it

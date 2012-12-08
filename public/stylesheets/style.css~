@@ -1,0 +1,13 @@
+html { 
+     background-image:url('/images/pattern.png');
+     font-family: Sans-Serif;
+     color: black } 
+.failureMessage { color:red }
+.outbound .content { color:blue; text-align:right; margin-left:30%; margin-right:20%}
+.inbound .content { color:green; text-align:left; margin-left:20%; margin-right:30% }
+.outbound .timestamp { color:blue; text-align:right; margin-left:30%; margin-right:20%; font-size:33%}
+.inbound .timestamp { color:green; text-align:left; margin-left:20%; margin-right:30%; font-size:33% }
+.title { text-align:center; padding-bottom:50px }
+.listelt { margin-left:auto; margin-right:auto; text-align: center; background:rgba(20,20,20,.2); width: 60%; word-wrap:break-word; margin-bottom:30px }
+.login { text-align: center }
+#loginMessageDiv { text-align: center }

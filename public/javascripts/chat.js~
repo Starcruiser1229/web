@@ -1,0 +1,149 @@
+var socket = io.connect("http://localhost");
+var myUsername; //keep track of what this clients username is after we have set it.
+
+
+//FUNCTIONS THAT DO WEB SOCKET STUFF
+var acceptUser = function() //this function is called when we have succesfully logged in the user
+{
+   console.log("user accepted"); //debug
+   myUsername = $("#username").val();
+   
+   $("#loginMessageDiv").remove();
+   $("#loginForm").remove();
+};
+
+var rejectUser = function() //this function is called when the user login failed.
+{
+   console.log("user rejected"); //debug
+   $("#loginMessageDiv").html("<h1 class='failureMessage'>That Username Already Exists, Please Try Again! </h1>"); //display failure message
+};
+
+var userArrive = function(data) //a new user has logged in - add them to the list
+{
+   console.log("in user arrive"); //debug
+   if(data.username !== myUsername && myUsername !== null && myUsername != undefined) //we don't want to add ourself to the chat list, and we don't want to add anyone until we log in
+   {
+      $("#chatWindow").append("<div id='"+data.username+"' class='collapsed listelt' ><h3 class='username'>"+data.username+"</h3></div>");
+      
+      sortList(); //sorts the list. Also sets the onclick handlers so I don't need to do that here.
+   }
+};
+
+var userLeave = function(data) //a user has logged out - remove them from the list
+{
+   console.log("in user leave");
+   $("#chatWindow #"+data.username).remove();
+}
+
+var recieveMessage = function(data)
+{
+   console.log("in message recieved"); //debug
+   
+   if($("#"+data.from).hasClass("collapsed"))
+   {
+         $("#"+data.from).removeClass("collapsed");
+         $("#"+data.from).append("<div class='chatHistory'></div>");
+         $("#"+data.from).append("<form class='chatTextBox'><label>Enter Message: </label><input type='text' class='chattext'><input type='submit'></form>");
+         $("#"+data.from+" form").submit(submitHandler);
+   }
+   
+   var timestamp = new Date(data.time); //the date needs to be reconstituted
+   $("#"+data.from + " .chatHistory").append("<div class='entry inbound'> <span class='timestamp'>" + timestamp.toString() + "</span> <span class='content'>"+ data.message + "</span></div>");
+}
+   
+
+//EVENT HANDLERS
+var loginHandler = function() //form handler for login form
+{ 
+     console.log("in login handler"); //debug
+     
+     var validator = /^[A-Za-z_][A-Za-z_0-9]*$/;
+     if(validator.exec($("#username").val()) ) //username is OK
+     {
+          socket.emit("UserLogin", {username:$("#username").val()} ); //send login request to the server
+     }
+     else //username is not OK
+     {
+          $("#loginMessageDiv").html("<h1 class='failureMessage'>You have entered an invalid username. Please try again. </h1>");
+     }
+     return false; //prevent the button from doing anything
+};
+
+var submitHandler = function(eventObject) //this handles the submit buttons for all the individual chat text boxes
+{
+     console.log("in submit handler");//debug
+     var now = new Date();
+     
+     socket.emit("TextMessage", {from:myUsername, to:$(eventObject.currentTarget).parent().attr("id") , message:$(eventObject.currentTarget).children().filter('.chattext').val(), time:now } );
+     $(eventObject.currentTarget).parent().children().filter(".chatHistory").append("<div class='entry outbound'> <span class='timestamp'>" + now.toString() + "</span> <span class='content'>"+$(eventObject.currentTarget).children().filter('.chattext').val() + "</span></div>");
+     $(eventObject.currentTarget).children().filter('.chattext').val(""); //set the box back to blank
+     
+     
+     
+     return false; //prevent the button from doing anything
+};
+
+var clickHandler = function(eventObject) //handler for detecting clicks on usernames
+{
+     console.log("in click handler"); //debug
+     if($("#"+eventObject.currentTarget.id).hasClass("collapsed")) //this person does NOT already have a chat open
+     {
+          $("#"+eventObject.currentTarget.id).removeClass("collapsed");
+          $("#"+eventObject.currentTarget.id).append("<div class='chatHistory'></div>");
+          $("#"+eventObject.currentTarget.id).append("<form class='chatTextBox'><label>Enter Message: </label><input type='text' class='chattext'><input type='submit'></form>");
+          $("#"+eventObject.currentTarget.id+" form").submit(submitHandler);
+     }
+}
+
+var unloadHandler = function() //this handler gets called when the user leaves the page, and serves to log out that user.
+{
+     socket.emit("UserLogout", {username:myUsername});
+}
+
+//OTHER STUFF
+var main = function() //this function gets run when the page loads and handles all my setup stuff
+{
+    console.log("in main");
+    $("#loginForm").submit(loginHandler); //set up the login form handler
+    $(window).unload(unloadHandler); //register a handler for the unload event
+    
+    //setup the websockets to handle expected "routes"
+    socket.on("UserOK", acceptUser);
+    socket.on("UserReject", rejectUser);
+    socket.on("UserArrive", userArrive);
+    socket.on("UserLeave", userLeave);
+    socket.on("RecieveMessage", recieveMessage); 
+};
+
+$(main); //run the "main" function when the page loads
+
+var sortList = function () 
+	{
+    var myArray = []; //create empty array
+    //select all nodes which are direct children of the list
+    //push them into the array as objects.
+    $("#chatWindow .listelt").each(function(){myArray.push(this);});
+    //sort the array
+    myArray.sort(
+        function(a,b) //sort function
+        {
+            //extract and compare relevent child node text elements
+            if($(a).text() > $(b).text())
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    );
+    $("#chatWindow").empty(); //empty out the list 
+    for(var i in myArray) //add the sorted content back to the list.
+    {
+        $(myArray[i]).appendTo("#chatWindow");
+    }
+    $("#chatWindow .listelt").click(clickHandler);
+}
+
+

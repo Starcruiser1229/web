@@ -1,5 +1,6 @@
 var mysql = require('mysql');
-var socket = io.connect('HOST');
+// need hostname
+var socket = socketIO.connect('HOST');
 
 var connInfo = 
 {

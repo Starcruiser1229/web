@@ -25,8 +25,10 @@ var usersockets = {};
 
 //testing data - sort this out later...
 var test_piece = {name:"test piece", color:"#00ff00", shape:"square", x_scale:.8, y_scale:.8};
+var test_piece2 = {name:"test piece", color:"#0000ff", shape:"circle", x_scale:.8, y_scale:.8};
 var test_pieces = [];
 test_pieces[0] = test_piece;
+test_pieces[1] = test_piece2;
 var testBoard = new Array(10)
 var testSquare = {piece:""};
 for (var i = 0; i < 10; i++)
@@ -38,7 +40,7 @@ for (var i = 0; i < 10; i++)
     }
 }
 
-var test_game = {name:"test game", width:10, height:10, pieces:test_pieces, board:testBoard, grid_visible:true};
+var test_game = {name:"test game", width:10, height:10, pieces:test_pieces, board:testBoard, grid_visible:true, bg_color:"#ff0000", grid_color:"#ffffff"};
 games[10101] = test_game;
 
 exports.connectToDatabase = function() 

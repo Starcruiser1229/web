@@ -12,30 +12,39 @@ var loadGame = function(data)
     gameObj = data;
 }
 
+//TODO: Add socket emit events to notify other clients. Consider animations for move
 var addPiece = function(piece, location)
 {
-    console.log(gameObj.pieces);
-    gameObj.board[location.x][location.y].piece = gameObj.pieces[piece];  
+    console.log(gameObj.pieces[piece]);
+    gameObj.board[location.x][location.y].piece = gameObj.pieces[piece];
+    redrawGame();  
 }
 
 var removePiece = function(location)
 {
-    gameObj.board[location.x][location.y].piece = undefined;  
+    gameObj.board[location.x][location.y].piece = undefined;
+    redrawGame();  
 }
 
 var movePiece = function(start, end)
 {
     gameObj.board[end.x][end.y].piece = gameObj.board[start.x][start.y].piece;  
-    gameObj.board[start.x][start.y].piece = undefined; 
+    gameObj.board[start.x][start.y].piece = undefined;
+    redrawGame(); 
 }
 
 
 var redrawGame = function()
 {
-    //TODO: more shapes, draw background automatically, get grid color from object
+    //TODO:support for images and animation
     var u_width = canvas.width/gameObj.width;
     var u_height = canvas.height/gameObj.height;
     
+    //draw solid color background fill
+    c2d.fillStyle=gameObj.bg_color;
+    c2d.fillRect(0,0,canvas.width,canvas.height);
+    
+    //draw pieces
     for (var x = 0; x < gameObj.width; x++)
     {
         for(var y = 0; y < gameObj.height; y++)
@@ -46,19 +55,21 @@ var redrawGame = function()
                 c2d.fillStyle = piece.color;
                 if(piece.shape == "square") //the piece is square
                 {
-                    console.log(u_width*x);
-                    console.log(u_height*x);
-                    console.log(u_width*piece.x_scale);
-                    console.log(u_height*piece.y_scale);
-                    c2d.fillRect(u_width*x+((u_width*(1-(piece.x_scale)))/2), u_height*y+((u_width*(1-piece.y_scale))/2), u_width*piece.x_scale, u_height*piece.y_scale);
+                    c2d.fillRect(u_width*x+((u_width*(1-(piece.x_scale)))/2), u_height*y+((u_height*(1-piece.y_scale))/2), u_width*piece.x_scale, u_height*piece.y_scale);
+                }
+                else if(piece.shape == "circle") //the piece is square
+                {
+                    c2d.arc(u_width*x+(u_width/2), u_height*y+(u_height/2), ((u_width<u_height) ? ((u_width*piece.x_scale)/2) : ((u_height*piece.y_scale)/2)) , 0, 2*Math.PI, true);
+                    c2d.fill();
                 } 
             }
         }
     }
-     
+    
+    //draw grid
     if(gameObj.grid_visible)
     {
-        c2d.fillStyle = "#ffffff";
+        c2d.fillStyle = gameObj.grid_color;
         for(var x = 1; x < gameObj.width; x++)
         {
             c2d.fillRect(u_width*x-1, 0, 2, canvas.height);
@@ -77,7 +88,7 @@ var main = function() //this function gets run when the page loads and handles a
 {
     console.log("in main");
     
-    socket.on('loadGame', loadGame);
+    socket.on('loadGame', loadGame); //socket handler for incoming push of entire game object
     socket.emit('getGame', game_id); //call out to the server and request an update to the game object...
     
     var game_div = $(".game")[0];
@@ -105,28 +116,20 @@ var main = function() //this function gets run when the page loads and handles a
 $(main); //run the "main" function when the page loads
 
 
-var demoStuff = function()
+var demoStuff = function() //TODO: This is demo/debug code
 {
-  //demo code: Fill canvas with red rectangle.
-    c2d.fillStyle="#FF0000";
-    c2d.fillRect(0,0,canvas.width,canvas.height);
-    
     addPiece(0, {x:0,y:0});
     addPiece(0, {x:4,y:7});
     addPiece(0, {x:2,y:5});
-    redrawGame();
+    addPiece(1, {x:3,y:4});
     
     window.setTimeout(demoStuff2, 1000); //run second part of the demo in another second.
 }
 
-var demoStuff2 = function()
+var demoStuff2 = function() //TODO: This is demo/debug code
 {
   removePiece({x:4,y:7});
   movePiece({x:2,y:5}, {x:4,y:5});
-  //the draw code should redraw the bg automatically...
-  c2d.fillStyle="#FF0000";
-  c2d.fillRect(0,0,canvas.width,canvas.height);
-  redrawGame();
 }
 
 

@@ -97,7 +97,8 @@ exports.startGame = function(req, res)
 //TODO: Error handler page at /err/error_code
 
 // LORENZO FUCKED WITH YOUR SHIT BELOW THIS LINE!
-//TODO: implement serverside socket stuff
+// I don't know how to use the function you were building for newSocket. 
+// If you want, we can add the following into that function
 socket.on('connect', function({
     socket.emit('userlogin', prompt("Please select a username."));
 }));

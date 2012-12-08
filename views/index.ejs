@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+  </head>
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <h1 class="title"><%= title %></h1>
+    <div class="main_list">
+        <% if(!err) { %>
+            <ul> 
+                <% for (var i = 0; i < data.length; i++) { %>
+                    <li class="main_list_elt"><%= data[i].name %>: <a class="play_link" href=<%='start/'+data[i].id %> > Play</a> <a class="edit_link" href=<%='edit/'+data[i].id %> > Edit </a></li>
+                <% } %>
+            </ul>
+        <% } else { %>
+            <span class="error_msg"> There was an error loading content from the database, please refresh the page to try again </span>
+        <% } %>
+    </div>
+  </body>
+</html>

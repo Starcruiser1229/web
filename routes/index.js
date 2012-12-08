@@ -45,7 +45,7 @@ exports.renderHome = function(req, res)
 //render the editor page
 exports.renderEditor = function(req, res) 
 {
-    res.render("edit.ejs", {title:"Chat 326"} );
+    res.render("edit.ejs", {title:"DDgames"} );
 };
 
 //render the page which actually allows you to play a game...
@@ -58,7 +58,7 @@ exports.renderGame = function(req, res)
     }
     else
     {
-        res.render("game.ejs", {title:"Chat 326", id:req.params.id} );
+        res.render("game.ejs", {title:"DDgames", id:req.params.id} );
     }
 };
 

@@ -38,6 +38,7 @@ var express = require('express'),
 
  //setup two distinct types of websockets.
  //there may be a better way to do this?
+ // Why don't we just push content to the requesting socket as per the request type? 2 sockets seems weird.
   play = io
     .of('/play')
     .on('connection', routes.newSocket);
@@ -45,5 +46,41 @@ var express = require('express'),
   edit = io
     .of('/edit')
     .on('connection', routes.newSocket);
+    
+    //USER HANDLER STUFF
+    // list of handles, used for login checks, and populating clientside user lists
+    var usernames = [];
+    // socket storage, acts as pseudo hashtable. Maybe useful for pushing info to specific users
+    var usersockets = {};
+    //socket handler
+    socketIO.sockets.on('connection'. function(socket){
+        // user login
+        socket.on('userlogin', function(username)){
+            // verify legal handle
+            if (username !== null && username.match(/[A-Za-z_][A-Za-z_0-9]*/)){
+                // verify handle is unique
+                if (usernames.indexof(username) !== -1){
+                    socket.emit('userreject', username + ' is reserved. Please try again.')
+                }else{
+                    // add user to socket, add socket to storage
+                    socket.username = username;
+                    usersockets[socket.username] = socket;
+                    // add username to sorted list
+                    usernames.push(username);
+                    usernames.sort();
+                }
+            }else{
+                socket.emit('userreject', username + ' is not a valid username. Please try again.');
+            }
+        });
+        // user disconnect
+        socket.on('disconnect', function(){
+            var user = socket.username;
+            // free handle from list
+            usernames.splice(user, 1);
+            // We may or may not want to do this since it will destroy their session data (unless I'm wrong)
+            delete usersockets[user];
+        });
+    }
   
 });

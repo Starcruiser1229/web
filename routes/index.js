@@ -1,6 +1,8 @@
 var mysql = require('mysql');
 // need hostname
 var socket = socketIO.connect('HOST');
+// required for dom manipulation in socket requests
+var $ = require('jquery');
 
 var connInfo = 
 {
@@ -104,3 +106,11 @@ socket.on('connect', function({
 socket.on('userreject', function(msg){
     socket.emit('userlogin', prompt(msg));
 })
+
+// uses jquery to update userlists clientside (maybe this should be done on the view itself?)
+socket.on('updateusers', function(usernames){
+   $('#users').empty();
+   for(var i = 0; i < usernames.length; i++){
+       $('#users').append('<div>' + users[i] + '</div>');
+   }
+});

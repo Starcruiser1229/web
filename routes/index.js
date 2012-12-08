@@ -24,10 +24,21 @@ var usernames = [];
 var usersockets = {};
 
 //testing data - sort this out later...
-var test_piece = {name:"test piece", color:"#00ff00", shape:"square", size:.8};
+var test_piece = {name:"test piece", color:"#00ff00", shape:"square", x_scale:.8, y_scale:.8};
 var test_pieces = [];
 test_pieces[0] = test_piece;
-var test_game = {name:"test game", width:10, height:10, pieces:test_pieces};
+var testBoard = new Array(10)
+var testSquare = {piece:""};
+for (var i = 0; i < 10; i++)
+{
+    testBoard[i] = new Array(10);
+    for (var j = 0; j < 10; j++)
+    {
+        testBoard[i][j] = testSquare;
+    }
+}
+
+var test_game = {name:"test game", width:10, height:10, pieces:test_pieces, board:testBoard, grid_visible:true};
 games[10101] = test_game;
 
 exports.connectToDatabase = function() 

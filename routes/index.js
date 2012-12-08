@@ -1,4 +1,5 @@
 var mysql = require('mysql');
+var socket = io.connect('HOST');
 
 var connInfo = 
 {
@@ -92,5 +93,13 @@ exports.startGame = function(req, res)
 
 //TODO: Error handler page at /err/error_code
 
-//this is a placeholder for socket stuff which is not written yet...
-exports.newSocket = function() {}; //fix this later
+// LORENZO FUCKED WITH YOUR SHIT BELOW THIS LINE!
+//TODO: implement serverside socket stuff
+socket.on('connect', function({
+    socket.emit('userlogin', prompt("Please select a username."));
+}));
+
+// in the case that username is invalid or already exists
+socket.on('userreject', function(msg){
+    socket.emit('userlogin', prompt(msg));
+})

@@ -8,7 +8,22 @@
 
     <h1 class="title"><%= title %></h1>
     <div class="editor">
-        <span> THE EDITOR IS GOING TO GO HERE WHEN WE GET THIS SET UP </span>
+        <% if(!err) { %>
+            <b>RESULTS</b>
+            <ul> 
+                <% for (var i in data) { %>
+                    <li class="editor_elt"><%= data[i].name%>: </li>
+                <% } %>
+            </ul>
+            <b>FIELDS</b>
+            <ul> 
+                <% for (var i in field) { %>
+                    <li class="editor_elt"><%= field[i].name%>: </li>
+                <% } %>
+            </ul>
+        <% } else { %>
+            <span class="error_msg"> There was an error loading content from the database, please refresh the page to try again </span>
+        <% } %>
     </div>
   </body>
 </html>

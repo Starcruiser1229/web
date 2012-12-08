@@ -28,7 +28,13 @@ exports.connectToDatabase = function()
     });
 }
 
+//render the error page
+exports.renderErr = function(req, res)
+{
+    res.render("err.ejs", {title:"Big Flaming Error!", error_code:req.params.msg});
+}
 
+//render the home page with the main list of games
 exports.renderHome = function(req, res) 
 {
     conn.query("SELECT id, name FROM games", function(err, result){
@@ -36,17 +42,27 @@ exports.renderHome = function(req, res)
         });
 };
 
+//render the editor page
 exports.renderEditor = function(req, res) 
 {
     res.render("edit.ejs", {title:"Chat 326"} );
 };
 
+//render the page which actually allows you to play a game...
 exports.renderGame = function(req, res) 
 {
     console.log(req.params.id);
-    res.render("game.ejs", {title:"Chat 326", id:req.params.id} );
+    if(!games[req.params.id])
+    {
+        res.redirect("/err/Invalid_Instance");
+    }
+    else
+    {
+        res.render("game.ejs", {title:"Chat 326", id:req.params.id} );
+    }
 };
 
+//this route handler creates a new game object based on the selected template
 exports.startGame = function(req, res)
 {
     var done = false;
@@ -56,11 +72,25 @@ exports.startGame = function(req, res)
         console.log(code);
         if (!games[code])
         {
-            games[code] = true; //this is where we create the game object!!!!!!
+            //try to get the game info from the database
+            conn.query("SELECT * FROM games WHERE id=?",req.params.id, function(err, result)
+            {
+                if(!err) //got it!
+                {
+                    games[code] = result[0]; //save the game object for our new game
+                    res.redirect("/play/"+code); //redirect to the new game
+                }
+                else
+                {
+                    res.redirect("/err/Database_Error"); //redirect to an error page
+                }
+            });
             done = true;
         }
-    }
-    res.redirect("/play/"+code);   
+    }   
 }
 
+//TODO: Error handler page at /err/error_code
+
+//this is a placeholder for socket stuff which is not written yet...
 exports.newSocket = function() {}; //fix this later

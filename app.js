@@ -53,7 +53,7 @@ var express = require('express'),
     // socket storage, acts as pseudo hashtable. Maybe useful for pushing info to specific users
     var usersockets = {};
     //socket handler
-    socketIO.sockets.on('connection'. function(socket){
+    io.sockets.on('connection'. function(socket){
         // user login
         socket.on('userlogin', function(username)){
             // verify legal handle
@@ -69,7 +69,7 @@ var express = require('express'),
                     usernames.push(username);
                     usernames.sort();
                     // sends call to update #users div
-                    socketIO.sockets.emit('updateusers', usernames);
+                    io.sockets.emit('updateusers', usernames);
                 }
             }else{
                 socket.emit('userreject', username + ' is not a valid username. Please try again.');
@@ -83,7 +83,7 @@ var express = require('express'),
             // We may or may not want to do this since it will destroy their session data (unless I'm wrong)
             delete usersockets[user];
             // sends call to update #users div            
-            socketIO.sockets.emit('updateusers', usernames);
+            io.sockets.emit('updateusers', usernames);
         });
     }
   

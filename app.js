@@ -39,6 +39,8 @@ var express = require('express'),
  //setup two distinct types of websockets.
  //there may be a better way to do this?
  // Why don't we just push content to the requesting socket as per the request type? 2 sockets seems weird.
+ // I think I kinda see what you're doing here, but I don't know this method. See below for my implementation.
+ // Maybe we can merge them.
   play = io
     .of('/play')
     .on('connection', routes.newSocket);

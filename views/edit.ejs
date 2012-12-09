@@ -4,9 +4,10 @@
 <script>
     var socket = io.connect('http://localhost:3000');
     
-    function updatetable(table, id){
-        var value = $('#'+id).val();
-        socket.emit('updatetable',table, id, value)
+    function updatetable(table, key){
+        var value = $('#'+key).val();
+        console.log(value);
+        socket.emit('updatetable',table, key, value)
     }
 </script>
 <html>
@@ -30,7 +31,7 @@
                         <br>
                         <textarea id=<%= key %> type="text" style="height:240px;width:640px;"><%= data[i][key]%></textarea>
                         <br>
-                        <input type="submit" value="Submit" onclick=updatetable(<%= i %>,<%= key %>)>
+                        <input type="submit" value="Submit" name=<%= key %> onclick="updatetable(<%= i %>, this.name)">
                     </form>
                 </dd>
                 <% } %>

@@ -20,6 +20,10 @@ var draggingPiece; //which piece is the user currently dragging, if any?
 var loadGame = function(data)
 {
     gameObj = data;
+    
+    drawToolbar();
+    tbCanvas.onclick = onToolbarClick;
+    redrawGame();
 }
 
 //function to add a piece locally - calls socket to notify other clients
@@ -48,7 +52,6 @@ var removePiece = function(location)
 //function to remove a piece when told to do so by the socket
 var remoteRemovePiece = function(location, id)
 {
-    console.log("remote remove");
     gameObj.board[location.x][location.y].piece = undefined;
     redrawGame();  
 }
@@ -57,7 +60,6 @@ var remoteRemovePiece = function(location, id)
 //TODO: slide animation for remote moves.
 var remoteMovePiece = function(start, end, id)
 {
-    console.log("remote move");
     gameObj.board[end.x][end.y].piece = gameObj.board[start.x][start.y].piece;  
     gameObj.board[start.x][start.y].piece = undefined;
     redrawGame(); 
@@ -125,7 +127,6 @@ var onMouseUp = function(event)
     }
     else
     {
-        console.log("Registered Drag&Drop From " + mouseDown.x+","+mouseDown.y+" To "+x_loc+","+y_loc);
         socket.emit("movePiece", mouseDown, {x:x_loc, y:y_loc}, game_id);
     }
 }
@@ -168,9 +169,7 @@ var onToolbarClick = function(event)
     else
     {
         selectedPiece = Math.floor(event.offsetX/u_width);
-    }
-    console.log("Toolbar - Piece Selected: " + selectedPiece);
-    
+    }    
 }
 
 /**
@@ -343,18 +342,8 @@ var main = function()
     canvas.onmouseup = onMouseUp;
     
     c2d = canvas.getContext("2d"); //get canvas 2d drawing context
-    
-    window.setTimeout(demoStuff, 1000); //debug: run demo code with 1 sec delay to allow setup to complete
 };
 
 $(main); //jQuery: run the "main" function when the page loads
 
-
-//TESTING CODE--------------------------------------------------------------------------------------------
-var demoStuff = function() //TODO: This is demo/debug code
-{
-    drawToolbar();
-    tbCanvas.onclick = onToolbarClick;
-    redrawGame();
-}
 

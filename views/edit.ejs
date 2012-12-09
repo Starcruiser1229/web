@@ -30,7 +30,7 @@
                         <br>
                         <textarea id=<%= key %> type="text" style="height:240px;width:640px;"><%= data[i][key]%></textarea>
                         <br>
-                        <input type="submit" value="Submit" onclick="updatetable(this.table, this.key)" table=<%= i %> key=<%= key %>>
+                        <input type="submit" value="Submit" onclick=updatetable(<%= i %>,<%= key %>)>
                     </form>
                 </dd>
                 <% } %>

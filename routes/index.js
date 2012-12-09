@@ -239,11 +239,11 @@ exports.newSocket = function(socket)
         });   
     });
     
-    // something is breaking here. Table field and value are coming in as null even though they are correct on the client side
+    // PROBLEM!
     socket.on('updatetable', function(table, field, value){
         console.log("Table: "+table+"\nField: "+field+"\nValue: "+value);
-        // testing socket emissions before screwing around with tables
-        // conn.query("INSERT INTO ? (?) VALUES ('?')", table, field, value);
+        // the problem is here. Something about this syntax is incorrect. I'm not sure if I'm referencing the right field, or even the right table.'
+        conn.query("UPDATE games SET ='?' WHERE id=?",field, value, table);
     });
 }
 

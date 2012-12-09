@@ -25,25 +25,7 @@ var usernames = [];
 // socket storage, acts as pseudo hashtable. Maybe useful for pushing info to specific users
 var usersockets = {};
 
-//testing data - sort this out later...
-var test_piece = {name:"test piece", color:"#00ff00", shape:"square", x_scale:.8, y_scale:.8};
-var test_piece2 = {name:"test piece", color:"#0000ff", shape:"circle", x_scale:.8, y_scale:.8};
-var test_pieces = [];
-test_pieces[0] = test_piece;
-test_pieces[1] = test_piece2;
-var testBoard = new Array(10)
-for (var i = 0; i < 10; i++)
-{
-    testBoard[i] = new Array(10);
-    for (var j = 0; j < 10; j++)
-    {
-        testBoard[i][j] = {piece:""};
-    }
-}
-
-var test_game = {name:"test game", width:10, height:10, pieces:test_pieces, board:testBoard, grid_visible:true, bg_color:"#ff0000", grid_color:"#ffffff"};
-games[10101] = test_game;
-gameSockets[10101] = new Array();
+//connect to the database...
 exports.connectToDatabase = function() 
 {
     conn = mysql.createConnection(connInfo);
@@ -116,9 +98,31 @@ exports.startGame = function(req, res)
             {
                 if(!err) //got it!
                 {
-                    games[code] = result[0]; //save the game object for our new game
-                    gameSockets[code] = new Array(); //create the array to hold the gamesockets for this game
-                    res.redirect("/play/"+code); //redirect to the new game
+                    conn.query("SELECT * FROM pieces WHERE game_id=?",req.params.id, function(err2, pieces)
+                    {
+                        if(!err) //got this one too!
+                        {
+                            games[code] = result[0]; //save the game object for our new game
+                            games[code].pieces = pieces; //add the array of pieces to the game object
+                            games[code].board = new Array(games[code].width); //start setting up the board array
+                            for (var i = 0; i < 10; i++) //loop through and create the board array.
+                            {
+                                games[code].board[i] = new Array(games[code].height);
+                                for (var j = 0; j < 10; j++)
+                                {
+                                    games[code].board[i][j] = {piece:""};
+                                }
+                            }
+                            
+                            console.log(games[code]);
+                            gameSockets[code] = new Array(); //create the array to hold the gamesockets for this game
+                            res.redirect("/play/"+code); //redirect to the new game
+                        }
+                        else
+                        {
+                             res.redirect("/err/Database_Error"); //redirect to an error page
+                        }   
+                    });
                 }
                 else
                 {

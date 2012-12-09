@@ -15,7 +15,9 @@ var connInfo =
 };
     
 var conn;
-var games = []; //this is the main array which will hold the game objects for all currently running games...
+var games = new Array(); //this is the main array which will hold the game objects for all currently running games...
+var gameSockets = new Array(); //this is an array of arrays which holds pointers to each of the sockets open in a given game...
+var socketSerial = 0; //this is just a number which counts up and allows me to assign a "unique" id to each new socket that comes in...
 
 //USER HANDLER STUFF
 // list of handles, used for login checks, and populating clientside user lists
@@ -30,19 +32,18 @@ var test_pieces = [];
 test_pieces[0] = test_piece;
 test_pieces[1] = test_piece2;
 var testBoard = new Array(10)
-var testSquare = {piece:""};
 for (var i = 0; i < 10; i++)
 {
     testBoard[i] = new Array(10);
     for (var j = 0; j < 10; j++)
     {
-        testBoard[i][j] = testSquare;
+        testBoard[i][j] = {piece:""};
     }
 }
 
 var test_game = {name:"test game", width:10, height:10, pieces:test_pieces, board:testBoard, grid_visible:true, bg_color:"#ff0000", grid_color:"#ffffff"};
 games[10101] = test_game;
-
+gameSockets[10101] = new Array();
 exports.connectToDatabase = function() 
 {
     conn = mysql.createConnection(connInfo);
@@ -118,6 +119,7 @@ exports.startGame = function(req, res)
                 if(!err) //got it!
                 {
                     games[code] = result[0]; //save the game object for our new game
+                    gameSockets[code] = new Array(); //create the array to hold the gamesockets for this game
                     res.redirect("/play/"+code); //redirect to the new game
                 }
                 else
@@ -132,6 +134,7 @@ exports.startGame = function(req, res)
 
 exports.newSocket = function(socket)
 {
+    socket.set("sock_id", socketSerial++); //uniquely identify this socket
     // user login
     socket.on('userlogin', function(username){
         // verify legal handle
@@ -163,13 +166,76 @@ exports.newSocket = function(socket)
         delete usersockets[user];
         // sends call to update #users div            
         io.sockets.emit('updateusers', usernames);
+        
+        //TODO:update gameSockets
+        
     });
     
+    //starting a new game...
     socket.on('getGame', function(gameTag){
         //TODO: Add error checking here
         socket.emit('loadGame', games[gameTag]);
+        socket.get("sock_id", function(err, name) {
+            if(!err)
+            {
+                gameSockets[gameTag][name] = socket; //store the sockets for later calls
+            }
+        });
     });
-        
+    
+    //notify all other people in this game to add a new piece
+    socket.on('addPiece', function(piece, location, gameTag){
+        socket.get("sock_id", function(err, name){
+            if(!err)
+            {
+                for (var key in gameSockets[gameTag])
+                {
+                    if(key != name)
+                    {
+                        gameSockets[gameTag][key].emit('addPiece', piece, location, gameTag);
+                    }
+                    console.log("add", key, name);
+                }
+                games[gameTag].board[location.x][location.y].piece = games[gameTag].pieces[piece];
+            }
+        });   
+    });
+    //notify all other people in this game to remove a piece
+    socket.on('removePiece', function(location, gameTag){
+        socket.get("sock_id", function(err, name){
+            if(!err)
+            {
+                for (var key in gameSockets[gameTag])
+                {
+                    if(key != name)
+                    {
+                        gameSockets[gameTag][key].emit('removePiece', location, gameTag);
+                    }
+                    console.log("remove",key, name);
+                }
+                games[gameTag].board[location.x][location.y].piece = undefined;
+            }
+        });   
+    });
+    
+      //notify all other people in this game to move a piece
+    socket.on('movePiece', function(start, end, gameTag){
+        socket.get("sock_id", function(err, name){
+            if(!err)
+            {
+                for (var key in gameSockets[gameTag])
+                {
+                    if(key != name)
+                    {
+                        gameSockets[gameTag][key].emit('movePiece', start, end, gameTag);
+                    }
+                    console.log('move', key, name);
+                }
+                games[gameTag].board[end.x][end.y].piece = games[gameTag].board[start.x][start.y].piece;
+                games[gameTag].board[start.x][start.y].piece = undefined;
+            }
+        });   
+    });
 }
 
 /*

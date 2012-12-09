@@ -9,39 +9,64 @@ var selectedPiece = 0; //the currently selected piece - changed by clicking on t
 
 var gameObj; //the object that represents the game
 
-var mouseDown;
-var draggingPiece;
+var mouseDown; //saves the information about when and where the last mouse down event happened.
+var draggingPiece; //which piece is the user currently dragging, if any?
+
+/**
+ * PIECE Manipulation Functions - both local and remote
+ */
 
 //allow the server to set the game object through the websocket
 var loadGame = function(data)
 {
-    console.log(data);
     gameObj = data;
 }
 
-//TODO: Add socket emit events to notify other clients. Consider animations for move
+//function to add a piece locally - calls socket to notify other clients
 var addPiece = function(piece, location)
 {
-    console.log("tried to add a piece", piece, location);
     gameObj.board[location.x][location.y].piece = gameObj.pieces[piece];
+    socket.emit('addPiece', piece, location, game_id);
     redrawGame();  
 }
 
+//function to handle adding a piece when told to do so by the socket.
+var remoteAddPiece = function(piece, location, id)
+{
+    gameObj.board[location.x][location.y].piece = gameObj.pieces[piece];
+    redrawGame(); 
+}
+
+//function to remove a piece locally - calls socket to notify other clients
 var removePiece = function(location)
 {
+    gameObj.board[location.x][location.y].piece = undefined;
+    socket.emit('removePiece', location, game_id);
+    redrawGame();  
+}
+
+//function to remove a piece when told to do so by the socket
+var remoteRemovePiece = function(location, id)
+{
+    console.log("remote remove");
     gameObj.board[location.x][location.y].piece = undefined;
     redrawGame();  
 }
 
-var movePiece = function(start, end)
+//function to move a piece when told to do so by the socket
+//TODO: slide animation for remote moves.
+var remoteMovePiece = function(start, end, id)
 {
+    console.log("remote move");
     gameObj.board[end.x][end.y].piece = gameObj.board[start.x][start.y].piece;  
     gameObj.board[start.x][start.y].piece = undefined;
     redrawGame(); 
 }
 
+/**
+ * Mouse Handlers
+ */
 
-//Mouse Handlers::::::::::::::::::::::::
 //On Mouse Down is called whenever the mouse button is pressed over the canvas
 //This function saves info about where the mouse was depressed so we can decide what
 //to do when it is released. It also starts the piece drag animations on this client.
@@ -101,11 +126,13 @@ var onMouseUp = function(event)
     else
     {
         console.log("Registered Drag&Drop From " + mouseDown.x+","+mouseDown.y+" To "+x_loc+","+y_loc);
-        //TODO: Fire appropriate socket events
+        socket.emit("movePiece", mouseDown, {x:x_loc, y:y_loc}, game_id);
     }
 }
 
 //this function is set up to track the mouse and redraw the piece being dragged the whole time it is being dragged.
+//this function provides the LOCAL move animation, in real time.
+//TODO: The position is slightly off. Fix it.
 var animateDrag = function(event)
 {
     var piece = draggingPiece;
@@ -127,6 +154,8 @@ var animateDrag = function(event)
     }
 }
 
+//this function is called when someone clicks on the toolbar
+//it updates which piece is the selected piece.
 var onToolbarClick = function(event)
 {
     var u_width = canvas.width/gameObj.width;
@@ -144,12 +173,15 @@ var onToolbarClick = function(event)
     
 }
 
+/**
+ * Graphics functions - draw things
+ */
  
 //this function handles drawing everything onto the canvas based on the current state of the game object.
 //it appropriately sizes everything for the size of the canvas and the grid.
 var redrawGame = function()
 {
-    //TODO:support for images and animation
+    //TODO:support for images
     var u_width = canvas.width/gameObj.width; //calculate the width (in px) of a grid square
     var u_height = canvas.height/gameObj.height; //calculate the height (in px) of a grid square
     
@@ -230,7 +262,6 @@ var drawToolbar = function()
         }
     }
     
-    console.log(tbCanvas);
     var t2d = tbCanvas.getContext("2d");
     if(wide) //its a tall toolbar
     {
@@ -277,13 +308,17 @@ var drawToolbar = function()
 }  
 
 
-
-//OTHER STUFF
+/**
+ * Other Stuff
+ */
 //the main function is run by jQuery after the page has finished loading. It creates the socket connections
 //and handles all of the setup stuff, like creating event handlers.
 var main = function() 
 {   
     socket.on('loadGame', loadGame); //socket handler for incoming push of entire game object
+    socket.on('addPiece', remoteAddPiece);
+    socket.on('movePiece', remoteMovePiece);
+    socket.on('removePiece',remoteRemovePiece);
     socket.emit('getGame', game_id); //call out to the server and request an update to the game object...
     //note: game_id is harcoded into the html using ejs. It provides the unique last 5 digits of the url.
     
@@ -318,21 +353,8 @@ $(main); //jQuery: run the "main" function when the page loads
 //TESTING CODE--------------------------------------------------------------------------------------------
 var demoStuff = function() //TODO: This is demo/debug code
 {
-    addPiece(0, {x:0,y:0});
-    addPiece(0, {x:4,y:7});
-    addPiece(0, {x:2,y:5});
-    addPiece(1, {x:3,y:4});
-    
     drawToolbar();
     tbCanvas.onclick = onToolbarClick;
-    
-    window.setTimeout(demoStuff2, 1000); //run second part of the demo in another second.
+    redrawGame();
 }
-
-var demoStuff2 = function() //TODO: This is demo/debug code
-{
-  removePiece({x:4,y:7});
-  movePiece({x:2,y:5}, {x:4,y:5});
-}
-
 

@@ -78,12 +78,10 @@ exports.renderHome = function(req, res)
 exports.renderEditor = function(req, res) 
 {
     console.log(req.params.id);
-    // I need more info about the tables before I can associate a form with table fields. I don't even know if I'm querying the right place.
-    conn.query('SELECT '+req.params.id+', '+(req.params.id-1)+' FROM games' , function(err, result, fields){
+    conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result, fields){
         res.render("edit.ejs", {
             title:"2D game editor", 
             data:result,
-            field: fields,
             err:err
         });
     });

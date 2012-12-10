@@ -104,10 +104,10 @@ exports.startGame = function(req, res)
                             games[code] = result[0]; //save the game object for our new game
                             games[code].pieces = pieces; //add the array of pieces to the game object
                             games[code].board = new Array(games[code].width); //start setting up the board array
-                            for (var i = 0; i < 10; i++) //loop through and create the board array.
+                            for (var i = 0; i < games[code].width; i++) //loop through and create the board array.
                             {
                                 games[code].board[i] = new Array(games[code].height);
-                                for (var j = 0; j < 10; j++)
+                                for (var j = 0; j < games[code].height; j++)
                                 {
                                     games[code].board[i][j] = {piece:""};
                                 }

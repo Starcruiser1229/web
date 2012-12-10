@@ -1,9 +1,5 @@
 var mysql = require('mysql');
 
-// need hostname
-//var socket = socketIO.connect('HOST');
-// required for dom manipulation in socket requests
-//var $ = require('jquery');
 
 var connInfo = 
 {
@@ -66,7 +62,7 @@ exports.renderEditor = function(req, res)
     conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result){
         res.render("edit.ejs", {
             title:"2D game editor", 
-            data:result,
+            data:result[0],
             err:err
         });
     });
@@ -242,33 +238,11 @@ exports.newSocket = function(socket)
         });   
     });
     
-    // PROBLEM!
-    socket.on('updatetable', function(table, field, value){
-        console.log("Table: "+table+"\nField: "+field+"\nValue: "+value);
-        // the problem is here. Something about this syntax is incorrect. I'm not sure if I'm referencing the right field, or even the right table.'
-        conn.query("UPDATE games SET ='?' WHERE id=?",field, value, table);
+    //update the table - this is called from the editor...
+    socket.on('updatetable', function(id, field, value){
+        console.log("id: "+id+"\nField: "+field+"\nValue: "+value);
+        console.log(id, field, value);
+        conn.query("UPDATE games SET "+field+"=? WHERE id=?", [value, id], function(err, results){ /* stuff could go here */ });
     });
 }
 
-/*
-//LORENZO - this file is run SERVER side - this looks like client code? If so it should be in library.js
-// LORENZO FUCKED WITH YOUR SHIT BELOW THIS LINE!
-// I don't know how to use the function you were building for newSocket. 
-// If you want, we can add the following into that function
-socket.on('connect', function(){
-    socket.emit('userlogin', prompt("Please select a username."));
-});
-
-// in the case that username is invalid or already exists
-socket.on('userreject', function(msg){
-    socket.emit('userlogin', prompt(msg));
-});
-
-// uses jquery to update userlists clientside (maybe this should be done on the view itself?)
-socket.on('updateusers', function(usernames){
-   $('#users').empty();
-   for(var i = 0; i < usernames.length; i++){
-       $('#users').append('<div>' + users[i] + '</div>');
-   }
-});
-*/ 

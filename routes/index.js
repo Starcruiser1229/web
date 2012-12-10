@@ -60,14 +60,17 @@ exports.renderHome = function(req, res)
 exports.renderEditor = function(req, res) 
 {
     console.log(req.params.id);
-    conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result, fields){
+    if (!conn.query('SELECT * FROM games WHERE id=?', req.params.id)){
+        conn.query('INSERT INTO games id=?', req.params.id);
+    }
+    conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result){
         res.render("edit.ejs", {
             title:"2D game editor", 
             data:result,
             err:err
         });
     });
-};
+}
 
 //render the page which actually allows you to play a game...
 exports.renderGame = function(req, res) 

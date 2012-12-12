@@ -59,13 +59,47 @@ exports.renderHome = function(req, res)
     });
 };
 
+//create a new game
+exports.createGame = function(req, res)
+{
+    conn.query('INSERT INTO games (name) VALUES (null)', function(err, result){
+        res.redirect("/edit/"+result.insertId);
+    });
+}
+
+//create a new piece for a game
+exports.createPiece = function(req, res)
+{
+    conn.query('INSERT INTO pieces (game_id) VALUES (?)', req.params.id, function(err, result){
+        res.redirect("/edit/"+req.params.id);
+    });
+}
+
+//delete a piece from the database
+exports.deletePiece = function(req, res)
+{
+    if(req.params.id >0)
+    {
+        conn.query('DELETE FROM pieces where id=?', req.params.id);
+    }
+    res.redirect('/edit/'+req.params.game_id);
+}
+
+//delete a game from the database
+exports.deleteGame = function(req, res)
+{
+    if(req.params.id >0)
+    {
+        conn.query('DELETE FROM games WHERE id=?', req.params.id);
+        conn.query('DELETE FROM pieces WHERE game_id=?', req.params.id);
+    }
+    res.redirect('/');
+}
 //render the editor page
 exports.renderEditor = function(req, res) 
 {
     console.log(req.params.id);
-    if (!conn.query('SELECT * FROM games WHERE id=?', req.params.id)){
-        conn.query('INSERT INTO games id=?', req.params.id);
-    }
+
     conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result){
         conn.query('SELECT * FROM pieces WHERE game_id=?', req.params.id, function(err2,pieces){
             res.render("edit.ejs", {
@@ -261,10 +295,9 @@ exports.newSocket = function(socket)
         conn.query("UPDATE games SET "+field+"=? WHERE id=?", [value, id], function(err, results){ /* stuff could go here */ });
     });
     //update the table - this is called from the editor...
-    socket.on('updatepiece', function(game_id, name, pfield, pvalue){
-        console.log("id: "+game_id+"\nName: "+name+"\nField: "+pfield+"\nValue: "+pvalue);
-        console.log(game_id, pfield, pvalue);
-        conn.query("UPDATE pieces SET "+pfield+"=? WHERE game_id=? AND name=?" , [pvalue, game_id, name], function(err, results){ /* stuff could go here */ });
+    socket.on('updatepiece', function(id, field, value){
+        console.log("id: "+id+"\nField: "+field+"\nValue: "+value);
+        conn.query("UPDATE pieces SET "+field+"=? WHERE id=?", [value, id], function(err, results){ /* stuff could go here */ });
     });
 }
 

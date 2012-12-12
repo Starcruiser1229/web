@@ -5,17 +5,15 @@
     var socket = io.connect('http://localhost:3000');
     
     function updatetable(id, key){
-        var value = $('#'+key).val();
+        var value = $('#game_'+key).val();
         console.log(value);
         socket.emit('updatetable',id, key, value)
+        return false;
     }
-    function updatepiece(game_id, name, field){
-        console.log(game_id);
-        console.log(name);
-        console.log(field);
-        var value = $('#'+field).val();
-        console.log(value);
-        socket.emit('updatepiece', game_id, name, field, value)
+    function updatepiece(id, field){
+        var value = $('#piece_'+field).val();
+        socket.emit('updatepiece', id, field, value)
+        return false;
     }
 </script>
 <html>
@@ -25,6 +23,7 @@
     <body>
 
         <h1 class="title"><%= title %></h1>
+        <a class='go_home' href='/'> Return to Homepage </a>
         <div class="editor">
             <% if(!err) { %>
             <dl>
@@ -34,27 +33,28 @@
                 <dd class="editor_elt"><%= key%> = <%= data[key]%>
                     <form>
                         <br>
-                        <textarea id=<%= key %> type="text" style="height:60px;width:600px;"><%= data[key]%></textarea>
+                        <textarea id='<%= "game_"+key %>' type="text" style="height:60px;width:600px;"><%= data[key]%></textarea>
                         <br>
-                        <input type="submit" value="Submit" name=<%= key %> onclick="updatetable(<%= data['id'] %>, this.name)">
+                        <input type="submit" value="Submit" name='<%= "game_"+key %>' onclick="updatetable(<%= data['id'] %>, '<%= key %>')">
                     </form>
                 </dd>
                 <% } %>
                 <% } %>
                 <br>
                 <b>PIECES</b>
+                <a href=<%= '/createPiece/'+data['id'] %>> Create a New Piece </a>
                 <% for (var i in pieces) { %>
                 <% if (pieces.hasOwnProperty(i)) { %>
-                <dt><b>PIECE: <%= i %></b></dt>
+                <dt><b>PIECE: <%= i %></b> <a href=<%= "/deletePiece/" + pieces[i]['id'] + "/" + data['id'] %> > Delete </a> </dt>
                 <% for (var field in pieces[i]) { %>
                 <% if (pieces[i].hasOwnProperty(field)) { %>
                 <dd class="editor_elt">
                     <%= field%> = <%= pieces[i][field]%>
                     <form>
                         <br>
-                        <textarea id=<%= field %> type="text" style="height:60px;width:600px;"><%= pieces[i][field]%></textarea>
+                        <textarea id='<%= "piece_"+field %>' type="text" style="height:60px;width:600px;"><%= pieces[i][field]%></textarea>
                         <br>
-                        <input type="submit" value="Submit" name=<%= field %> onclick="updatepiece(<%= pieces[i]['id']%>, <%= pieces[i]['id']%>, this.name)">
+                        <input type="submit" value="Submit" name='<%= "piece_"+field %>' onclick="updatepiece(<%= pieces[i]['id']%>, '<%= field %>')">
                     </form>
                 </dd>
                 <% } %>

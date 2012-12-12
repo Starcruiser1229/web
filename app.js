@@ -29,6 +29,10 @@ var express = require('express'),
   app.get('/edit/:id', routes.renderEditor);
   app.get('/start/:id', routes.startGame);
   app.get('/err/:msg', routes.renderErr);
+  app.get('/createGame/',routes.createGame);
+  app.get('/createPiece/:id', routes.createPiece);
+  app.get('/delete/:id',routes.deleteGame);
+  app.get('/deletePiece/:id/:game_id',routes.deletePiece);
   
   var server = http.createServer(app);
   io = socketIO.listen(server); //this is global so the routes can use it

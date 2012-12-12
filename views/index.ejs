@@ -20,13 +20,10 @@
             <% if(!err) { %>
             <ul> 
                 <% for (var i = 0; i < data.length; i++) { %>
-                <li class="main_list_elt"><%= data[i].name %>: <a class="play_link" href=<%='start/'+data[i].id %> > Play</a> <a class="edit_link" href=<%='edit/'+data[i].id %> > Edit </a></li>
+                <li class="main_list_elt"><%= data[i].name %>: <a class="play_link" href=<%='start/'+data[i].id %> > Play</a> <a class="edit_link" href=<%='edit/'+data[i].id %> > Edit </a><a class="delete_link" href=<%='delete/'+data[i].id %> > Delete </a></li>
                 <% } %>
                 <li>
-                    <form>
-                        <input id="new" type="text" value="">
-                        <input type="submit" onclick="newgame()" value="New Game">
-                    </form>
+                    <a href='createGame/'> Add a New Game </a>
                 </li>
             </ul>
             <% } else { %>

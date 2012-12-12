@@ -41,15 +41,22 @@ exports.connectToDatabase = function()
 //render the error page
 exports.renderErr = function(req, res)
 {
-    res.render("err.ejs", {title:"Big Flaming Error!", error_code:req.params.msg});
+    res.render("err.ejs", {
+        title:"Big Flaming Error!", 
+        error_code:req.params.msg
+        });
 }
 
 //render the home page with the main list of games
 exports.renderHome = function(req, res) 
 {
     conn.query("SELECT id, name FROM games", function(err, result){
-        res.render("index.ejs", {title:"2D Games", data:result, err:err} );
-        });
+        res.render("index.ejs", {
+            title:"2D Games", 
+            data:result, 
+            err:err
+        } );
+    });
 };
 
 //render the editor page
@@ -60,13 +67,17 @@ exports.renderEditor = function(req, res)
         conn.query('INSERT INTO games id=?', req.params.id);
     }
     conn.query('SELECT * FROM games WHERE id=?', req.params.id, function(err, result){
-        res.render("edit.ejs", {
-            title:"2D game editor", 
-            data:result[0],
-            err:err
+        conn.query('SELECT * FROM pieces WHERE game_id=?', req.params.id, function(err2,pieces){
+            res.render("edit.ejs", {
+                title:"2D game editor", 
+                data:result[0],
+                pieces:pieces,
+                err:err
+            });
         });
     });
 }
+
 
 //render the page which actually allows you to play a game...
 exports.renderGame = function(req, res) 
@@ -78,7 +89,10 @@ exports.renderGame = function(req, res)
     }
     else
     {
-        res.render("game.ejs", {title:"2Dgames", id:req.params.id} );
+        res.render("game.ejs", {
+            title:"2Dgames", 
+            id:req.params.id
+            } );
     }
 };
 
@@ -109,7 +123,9 @@ exports.startGame = function(req, res)
                                 games[code].board[i] = new Array(games[code].height);
                                 for (var j = 0; j < games[code].height; j++)
                                 {
-                                    games[code].board[i][j] = {piece:""};
+                                    games[code].board[i][j] = {
+                                        piece:""
+                                    };
                                 }
                             }
                             
@@ -119,7 +135,7 @@ exports.startGame = function(req, res)
                         }
                         else
                         {
-                             res.redirect("/err/Database_Error"); //redirect to an error page
+                            res.redirect("/err/Database_Error"); //redirect to an error page
                         }   
                     });
                 }
@@ -168,7 +184,7 @@ exports.newSocket = function(socket)
         // sends call to update #users div            
         io.sockets.emit('updateusers', usernames);
         
-        //TODO:update gameSockets
+    //TODO:update gameSockets
         
     });
     
@@ -219,7 +235,7 @@ exports.newSocket = function(socket)
         });   
     });
     
-      //notify all other people in this game to move a piece
+    //notify all other people in this game to move a piece
     socket.on('movePiece', function(start, end, gameTag){
         socket.get("sock_id", function(err, name){
             if(!err)
@@ -243,6 +259,12 @@ exports.newSocket = function(socket)
         console.log("id: "+id+"\nField: "+field+"\nValue: "+value);
         console.log(id, field, value);
         conn.query("UPDATE games SET "+field+"=? WHERE id=?", [value, id], function(err, results){ /* stuff could go here */ });
+    });
+    //update the table - this is called from the editor...
+    socket.on('updatepiece', function(game_id, name, pfield, pvalue){
+        console.log("id: "+game_id+"\nName: "+name+"\nField: "+pfield+"\nValue: "+pvalue);
+        console.log(game_id, pfield, pvalue);
+        conn.query("UPDATE pieces SET "+pfield+"=? WHERE game_id=? AND name=?" , [pvalue, game_id, name], function(err, results){ /* stuff could go here */ });
     });
 }
 
